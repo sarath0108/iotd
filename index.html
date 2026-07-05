@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoPredict AI | Smart Energy Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#050B14',
+                        panelBg: 'rgba(11, 23, 39, 0.7)',
+                        cyanGlow: '#00F0FF',
+                        greenGlow: '#00FF66',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050B14;
+            color: #ffffff;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 255, 102, 0.05), transparent 25%);
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: rgba(11, 23, 39, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            border-radius: 12px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+        }
+
+        /* Text Gradients & Glows */
+        .text-gradient {
+            background: linear-gradient(90deg, #00F0FF, #00FF66);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .glow-cyan { text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
+        .glow-green { text-shadow: 0 0 10px rgba(0, 255, 102, 0.5); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050B14; }
+        ::-webkit-scrollbar-thumb { background: #00F0FF; border-radius: 4px; }
+
+        /* Status Indicators */
+        .status-dot {
+            height: 12px; width: 12px; border-radius: 50%; display: inline-block;
+        }
+        .status-healthy { background-color: #00FF66; box-shadow: 0 0 8px #00FF66; }
+        .status-warning { background-color: #FFB800; box-shadow: 0 0 8px #FFB800; }
+        .status-critical { background-color: #FF003C; box-shadow: 0 0 8px #FF003C; }
+    </style>
+</head>
+<body class="flex h-screen antialiased">
+
+    <aside class="w-64 glass-panel m-4 flex flex-col h-[calc(100vh-2rem)] z-20">
+        <div class="p-6 border-b border-gray-800">
+            <h1 class="text-2xl font-extrabold text-gradient tracking-wider">EcoPredict<span class="text-white">AI</span></h1>
+            <p class="text-xs text-gray-400 mt-1">Industry 5.0 MSME Platform</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <button onclick="switchTab('dashboard')" class="nav-btn w-full flex items-center p-3 rounded-lg bg-cyan-900/30 text-cyanGlow border border-cyan-500/30 transition-all">
+                <i class="fas fa-chart-line w-6 text-center"></i>
+                <span class="ml-3 font-semibold">Live Dashboard</span>
+            </button>
+            <button onclick="switchTab('machines')" class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                <i class="fas fa-microchip w-6 text-center"></i>
+                <span class="ml-3 font-semibold">Machine Monitor</span>
+            </button>
+            <button onclick="switchTab('sustainability')" class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                <i class="fas fa-leaf w-6 text-center"></i>
+                <span class="ml-3 font-semibold">Sustainability</span>
+            </button>
+            <button class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                <i class="fas fa-brain w-6 text-center"></i>
+                <span class="ml-3 font-semibold">AI Analytics</span>
+            </button>
+            <button class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                <i class="fas fa-bell w-6 text-center"></i>
+                <span class="ml-3 font-semibold">Alerts Center</span>
+                <span class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">3</span>
+            </button>
+        </nav>
+        <div class="p-4 border-t border-gray-800">
+            <div class="flex items-center">
+                <img src="https://ui-avatars.com/api/?name=Admin+User&background=00F0FF&color=050B14" alt="User" class="rounded-full w-10 h-10 border-2 border-cyanGlow">
+                <div class="ml-3">
+                    <p class="text-sm font-bold text-white">Factory Admin</p>
+                    <p class="text-xs text-greenGlow">Online - Active</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-4 overflow-y-auto h-screen relative">
+        
+        <header class="flex justify-between items-center mb-8 glass-panel p-4 rounded-xl">
+            <div>
+                <h2 class="text-3xl font-bold glow-cyan" id="page-title">Enterprise Dashboard</h2>
+                <p class="text-gray-400 text-sm mt-1">Real-time IoT telemetry & AI predictive insights</p>
+            </div>
+            <div class="flex space-x-4 items-center">
+                <div class="text-right mr-4">
+                    <p class="text-xs text-gray-400">Current Load</p>
+                    <p class="text-xl font-bold text-cyanGlow">4,284 kW</p>
+                </div>
+                <button class="glass-panel p-3 rounded-full hover:bg-cyan-900/50"><i class="fas fa-cog"></i></button>
+                <button class="glass-panel p-3 rounded-full hover:bg-cyan-900/50"><i class="fas fa-download"></i></button>
+            </div>
+        </header>
+
+        <div id="tab-dashboard" class="tab-content space-y-6 block">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="glass-panel p-5 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-5xl"><i class="fas fa-bolt"></i></div>
+                    <h3 class="text-gray-400 text-sm font-semibold mb-1">Energy Consumed (24h)</h3>
+                    <p class="text-3xl font-bold text-white mb-2">12,450 <span class="text-lg text-gray-500">kWh</span></p>
+                    <p class="text-sm text-greenGlow"><i class="fas fa-arrow-down"></i> 4.2% vs yesterday (AI Optimized)</p>
+                </div>
+                <div class="glass-panel p-5 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-5xl"><i class="fas fa-brain"></i></div>
+                    <h3 class="text-gray-400 text-sm font-semibold mb-1">AI Energy Efficiency Score</h3>
+                    <p class="text-3xl font-bold text-cyanGlow mb-2">94 <span class="text-lg text-gray-500">/ 100</span></p>
+                    <div class="w-full bg-gray-800 rounded-full h-2 mt-2">
+                        <div class="bg-cyanGlow h-2 rounded-full" style="width: 94%"></div>
+                    </div>
+                </div>
+                <div class="glass-panel p-5 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-5xl"><i class="fas fa-dollar-sign"></i></div>
+                    <h3 class="text-gray-400 text-sm font-semibold mb-1">Estimated Cost Savings</h3>
+                    <p class="text-3xl font-bold text-greenGlow mb-2">$1,240 <span class="text-lg text-gray-500">/ mo</span></p>
+                    <p class="text-sm text-gray-400">Based on predictive maintenance</p>
+                </div>
+                <div class="glass-panel p-5 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-5xl"><i class="fas fa-smog"></i></div>
+                    <h3 class="text-gray-400 text-sm font-semibold mb-1">Carbon Footprint</h3>
+                    <p class="text-3xl font-bold text-white mb-2">4.2 <span class="text-lg text-gray-500">Tons CO₂</span></p>
+                    <p class="text-sm text-greenGlow"><i class="fas fa-leaf"></i> 1.5 Tons offset by solar</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="glass-panel p-5 lg:col-span-2">
+                    <h3 class="text-lg font-semibold mb-4 flex justify-between">
+                        <span>Real-Time Power Consumption & AI Prediction</span>
+                        <span class="text-sm bg-cyan-900/50 text-cyanGlow px-3 py-1 rounded-full border border-cyanGlow/30">Live Data</span>
+                    </h3>
+                    <div class="h-72">
+                        <canvas id="energyChart"></canvas>
+                    </div>
+                </div>
+                <div class="glass-panel p-5">
+                    <h3 class="text-lg font-semibold mb-4">Energy Sources</h3>
+                    <div class="h-64 flex justify-center">
+                        <canvas id="sourceChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center text-sm text-gray-300">
+                        <span class="inline-block mr-4"><span class="status-dot bg-[#00F0FF] mr-1"></span>Grid (60%)</span>
+                        <span class="inline-block"><span class="status-dot bg-[#00FF66] mr-1"></span>Solar (40%)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-machines" class="tab-content space-y-6 hidden">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold">IoT Fleet Management (Digital Twin Overview)</h3>
+                <input type="text" placeholder="Search Machine ID..." class="glass-panel px-4 py-2 text-sm text-white focus:outline-none focus:border-cyanGlow">
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="glass-panel p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="text-lg font-bold text-white">CNC Mill Alpha</h4>
+                            <p class="text-xs text-gray-400">ID: MAC-8821</p>
+                        </div>
+                        <div class="flex items-center bg-green-900/30 px-2 py-1 rounded border border-green-500/30">
+                            <span class="status-healthy mr-2"></span><span class="text-xs font-bold text-green-400">OPTIMAL</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+                        <div class="bg-black/30 p-2 rounded"><span class="text-gray-400 block text-xs">Voltage</span> <span class="font-mono text-cyanGlow">415 V</span></div>
+                        <div class="bg-black/30 p-2 rounded"><span class="text-gray-400 block text-xs">Current</span> <span class="font-mono text-cyanGlow">32.4 A</span></div>
+                        <div class="bg-black/30 p-2 rounded"><span class="text-gray-400 block text-xs">Temp</span> <span class="font-mono text-greenGlow">45°C</span></div>
+                        <div class="bg-black/30 p-2 rounded"><span class="text-gray-400 block text-xs">Vibration</span> <span class="font-mono text-greenGlow">1.2 mm/s</span></div>
+                    </div>
+                    <button class="w-full bg-cyan-900/40 hover:bg-cyan-900/80 text-cyanGlow border border-cyan-500/50 py-2 rounded transition-all text-sm font-semibold">View AI Diagnostics</button>
+                </div>
+
+                <div class="glass-panel p-5 border-yellow-500/30 shadow-[0_0_15px_rgba(255,184,0,0.1)]">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="text-lg font-bold text-white">Conveyor Belt B</h4>
+                            <p class="text-xs text-gray-400">ID: MAC-1104</p>
+                        </div>
+                        <div class="flex items-center bg-yellow-900/30 px-2 py-1 rounded border border-yellow-500/30">
+                            <span class="status-warning mr-2"></span><span class="text-xs font-bold text-yellow-400">ANOMALY</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+                        <div class="bg-black/30 p-2 rounded"><span class="text-gray-400 block text-xs">Voltage</span> <span class="font-mono text-cyanGlow">410 V</span></div>
+                        <div class="bg-black/30 p-2 rounded"><span class="text-gray-400 block text-xs">Current</span> <span class="font-mono text-yellow-400">55.1 A (High)</span></div>
+                        <div class="bg-black/30 p-2 rounded"><span class="text-gray-400 block text-xs">Temp</span> <span class="font-mono text-yellow-400">72°C</span></div>
+                        <div class="bg-black/30 p-2 rounded"><span class="text-gray-400 block text-xs">Vibration</span> <span class="font-mono text-yellow-400">3.8 mm/s</span></div>
+                    </div>
+                    <button class="w-full bg-yellow-900/40 hover:bg-yellow-900/80 text-yellow-400 border border-yellow-500/50 py-2 rounded transition-all text-sm font-semibold">Predictive Maint. Alert</button>
+                </div>
+
+                <div class="glass-panel p-5 border-red-500/30 shadow-[0_0_15px_rgba(255,0,60,0.15)]">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="text-lg font-bold text-white">HVAC System</h4>
+                            <p class="text-xs text-gray-400">ID: MAC-9932</p>
+                        </div>
+                        <div class="flex items-center bg-red-900/30 px-2 py-1 rounded border border-red-500/30">
+                            <span class="status-critical mr-2"></span><span class="text-xs font-bold text-red-400">OFFLINE</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+                        <div class="bg-black/30 p-2 rounded"><span class="text-gray-400 block text-xs">Voltage</span> <span class="font-mono text-red-400">0 V</span></div>
+                        <div class="bg-black/30 p-2 rounded"><span class="text-gray-400 block text-xs">Current</span> <span class="font-mono text-red-400">0 A</span></div>
+                        <div class="bg-black/30 p-2 rounded"><span class="text-gray-400 block text-xs">Temp</span> <span class="font-mono text-gray-500">N/A</span></div>
+                        <div class="bg-black/30 p-2 rounded"><span class="text-gray-400 block text-xs">Failure Reason</span> <span class="font-mono text-red-400">Power Trip</span></div>
+                    </div>
+                    <button class="w-full bg-red-900/40 hover:bg-red-900/80 text-red-400 border border-red-500/50 py-2 rounded transition-all text-sm font-semibold">Generate Fault Report</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-sustainability" class="tab-content space-y-6 hidden">
+            <div class="glass-panel p-8 text-center bg-gradient-to-br from-green-900/20 to-cyan-900/20 border-greenGlow/30">
+                <i class="fas fa-globe-americas text-6xl text-greenGlow mb-4"></i>
+                <h2 class="text-3xl font-bold mb-2">ESG & Sustainability Hub</h2>
+                <p class="text-gray-300 max-w-2xl mx-auto">Tracking MSME alignment with UN Sustainable Development Goals (SDGs) through IoT energy optimization.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-panel p-6 text-center border-t-4 border-t-greenGlow">
+                    <h4 class="text-gray-400 font-semibold mb-2">Estimated Trees Saved</h4>
+                    <p class="text-5xl font-bold text-white mb-2">142</p>
+                    <p class="text-sm text-greenGlow">YTD Calculation</p>
+                </div>
+                <div class="glass-panel p-6 text-center border-t-4 border-t-cyanGlow">
+                    <h4 class="text-gray-400 font-semibold mb-2">CO₂ Emissions Averted</h4>
+                    <p class="text-5xl font-bold text-white mb-2">12.5 <span class="text-xl">Tons</span></p>
+                    <p class="text-sm text-cyanGlow">Via AI Load Balancing</p>
+                </div>
+                <div class="glass-panel p-6 text-center border-t-4 border-t-blue-500">
+                    <h4 class="text-gray-400 font-semibold mb-2">SDG Alignment Score</h4>
+                    <p class="text-5xl font-bold text-white mb-2">A+</p>
+                    <p class="text-sm text-blue-400">Goals 7, 9, 12, 13</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+                tab.classList.remove('block');
+            });
+            // Show targeted tab
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.getElementById('tab-' + tabId).classList.add('block');
+            
+            // Update Navigation UI
+            const btns = document.querySelectorAll('.nav-btn');
+            btns.forEach(btn => {
+                btn.classList.remove('bg-cyan-900/30', 'text-cyanGlow', 'border-cyan-500/30');
+                btn.classList.add('text-gray-400', 'border-transparent');
+                btn.classList.remove('border');
+            });
+            
+            // Re-style active button and update Title
+            const activeBtn = event.currentTarget;
+            activeBtn.classList.remove('text-gray-400', 'border-transparent');
+            activeBtn.classList.add('bg-cyan-900/30', 'text-cyanGlow', 'border', 'border-cyan-500/30');
+            
+            const titles = {
+                'dashboard': 'Enterprise Dashboard',
+                'machines': 'Machine Monitoring & Diagnostics',
+                'sustainability': 'ESG Impact & Sustainability'
+            };
+            document.getElementById('page-title').innerText = titles[tabId];
+        }
+
+        // Initialize Chart.js
+        document.addEventListener('DOMContentLoaded', function() {
+            // Chart Defaults for Dark Theme
+            Chart.defaults.color = '#9ca3af';
+            Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+            Chart.defaults.font.family = 'Inter';
+
+            // 1. Main Line Chart (Actual vs Predicted)
+            const ctxLine = document.getElementById('energyChart').getContext('2d');
+            
+            // Create Gradients
+            let cyanGradient = ctxLine.createLinearGradient(0, 0, 0, 300);
+            cyanGradient.addColorStop(0, 'rgba(0, 240, 255, 0.4)');
+            cyanGradient.addColorStop(1, 'rgba(0, 240, 255, 0.0)');
+            
+            new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', 'Now'],
+                    datasets: [
+                        {
+                            label: 'Actual Usage (kW)',
+                            data: [3200, 2900, 4100, 4800, 4500, 3900, 4284],
+                            borderColor: '#00F0FF',
+                            backgroundColor: cyanGradient,
+                            borderWidth: 2,
+                            pointBackgroundColor: '#050B14',
+                            pointBorderColor: '#00F0FF',
+                            pointBorderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'AI Predicted Usage (kW)',
+                            data: [3150, 3000, 4200, 4700, 4600, 3850, 4200],
+                            borderColor: '#00FF66',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', align: 'end' }
+                    },
+                    scales: {
+                        y: { beginAtZero: false, min: 2000 }
+                    }
+                }
+            });
+
+            // 2. Doughnut Chart (Energy Sources)
+            const ctxPie = document.getElementById('sourceChart').getContext('2d');
+            new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Utility Grid', 'Solar/Renewable'],
+                    datasets: [{
+                        data: [60, 40],
+                        backgroundColor: ['#00F0FF', '#00FF66'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
